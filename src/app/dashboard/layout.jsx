@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { label: "Add Pet", href: "/dashboard/add-pets" },
   { label: "My Requests", href: "/dashboard/my-requests" },
+  { label: "My Listings", href: "/dashboard/my-listings" },
 ];
 
 export default function DashboardLayout({ children }) {

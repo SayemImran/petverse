@@ -1,9 +1,12 @@
 "use client";
 import { useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const AddPetsPage = () => {
+  const { data: sessionData } = useSession();
+  const userInfo = sessionData?.user;
+
   const [form, setForm] = useState({
     petName: "",
     species: "",
@@ -16,9 +19,16 @@ const AddPetsPage = () => {
     location: "",
     adoptionFee: "",
     description: "",
+    ownerID: "",
   });
 
   const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    if (userInfo?.id) {
+      setForm((prev) => ({ ...prev, ownerID: userInfo.id }));
+    }
+  }, [userInfo?.id]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -27,8 +37,8 @@ const AddPetsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+
+    const data = { ...form, ownerID: userInfo?.id || "" };
     console.log("Submitting pet data: ", data);
 
     try {
@@ -39,12 +49,15 @@ const AddPetsPage = () => {
         },
         body: JSON.stringify(data),
       });
+
       if (!response.ok) {
         throw new Error("Failed to add pet");
       }
+
       const result = await response.json();
       console.log("Pet added successfully: ", result);
       setSuccessMessage("Pet added successfully!");
+
       setForm({
         petName: "",
         species: "",
@@ -57,16 +70,13 @@ const AddPetsPage = () => {
         location: "",
         adoptionFee: "",
         description: "",
+        ownerID: userInfo?.id || "",
       });
     } catch (err) {
       console.error("Error adding pet: ", err);
     }
   };
 
-  const { data } = useSession();
-  const user = data?.user;
-  const email = user?.email;
-  console.log("Current user is : ", user?.name);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 py-12 px-4">
@@ -235,7 +245,7 @@ const AddPetsPage = () => {
                   type="number"
                   name="adoptionFee"
                   min="0"
-                  step="0.01"
+                  step="any"
                   value={form.adoptionFee}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-4 py-2 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
@@ -264,7 +274,7 @@ const AddPetsPage = () => {
                 <input
                   type="email"
                   name="email"
-                  value={email ?? ""}
+                  value={userInfo?.email ?? ""}
                   readOnly
                   className="w-full rounded-lg border border-white/10 bg-slate-900/50 px-4 py-2 text-slate-100 outline-none cursor-not-allowed opacity-75"
                 />
