@@ -1,10 +1,11 @@
 import Image from "next/image";
 import React from "react";
 import PetAdoptionForm from "@/components/pets/PetAdoptionForm";
+import { useSession } from "@/app/lib/auth-client";
 
 const PetDetailsPage = async ({ params }) => {
-  const { petId } =await params;
-  console.log("atrgeted pet id : ",petId);
+  const { petId } = await params;
+  console.log("atrgeted pet id : ", petId);
   const res = await fetch(`http://localhost:3001/pets/${petId}`, {
     cache: "no-store",
   });
@@ -14,7 +15,9 @@ const PetDetailsPage = async ({ params }) => {
       <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-16">
         <div className="text-center rounded-3xl border border-white/10 bg-white/5 p-10 text-white shadow-xl backdrop-blur-3xl">
           <p className="text-lg font-semibold">Pet not found</p>
-          <p className="mt-2 text-sm text-white/70">Please check the link or go back to the pet list.</p>
+          <p className="mt-2 text-sm text-white/70">
+            Please check the link or go back to the pet list.
+          </p>
         </div>
       </div>
     );
@@ -30,7 +33,10 @@ const PetDetailsPage = async ({ params }) => {
             Pet Details
           </span>
           <h1 className="mt-4 text-4xl font-semibold text-white">{pet.name}</h1>
-          <p className="max-w-2xl text-white/70 mt-3">{pet.description || `Discover more about ${pet.name} and submit a request to adopt.`}</p>
+          <p className="max-w-2xl text-white/70 mt-3">
+            {pet.description ||
+              `Discover more about ${pet.name} and submit a request to adopt.`}
+          </p>
         </div>
 
         <div className="grid gap-8 xl:grid-cols-[1.7fr_1fr]">
@@ -46,39 +52,60 @@ const PetDetailsPage = async ({ params }) => {
 
             <div className="mt-6 grid gap-6">
               <div className="space-y-3 rounded-3xl border border-white/10 bg-slate-950/30 p-5">
-                <h2 className="text-xl font-semibold text-white">About {pet.name}</h2>
-                <p className="text-sm leading-7 text-white/70">{pet.description || "A wonderful companion waiting for a new home."}</p>
+                <h2 className="text-xl font-semibold text-white">
+                  About {pet.name}
+                </h2>
+                <p className="text-sm leading-7 text-white/70">
+                  {pet.description ||
+                    "A wonderful companion waiting for a new home."}
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
                   <p className="text-sm text-white/60">Breed</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{pet.breed || "Unknown"}</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {pet.breed || "Unknown"}
+                  </p>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
                   <p className="text-sm text-white/60">Age</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{pet.age || "N/A"}</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {pet.age || "N/A"}
+                  </p>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
                   <p className="text-sm text-white/60">Gender</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{pet.gender || "N/A"}</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {pet.gender || "N/A"}
+                  </p>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
                   <p className="text-sm text-white/60">Location</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{pet.location || "Unknown"}</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {pet.location || "Unknown"}
+                  </p>
                 </div>
               </div>
 
               <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
                 <div className="flex items-center justify-between text-sm text-white/60">
                   <span>Adoption Fee</span>
-                  <span className="font-semibold text-white">{pet.adoptionFee ? `$${pet.adoptionFee}` : "Free"}</span>
+                  <span className="font-semibold text-white">
+                    {pet.adoptionFee ? `$${pet.adoptionFee}` : "Free"}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-
-          <PetAdoptionForm petName={pet.petName || ""} ownerID={pet.ownerID}/>
+          
+            <PetAdoptionForm
+              petName={pet.petName || ""}
+              ownerID={pet.ownerID}
+              petLocation={pet.location || ""}
+              price={pet.adoptionFee || 0}
+              petImage={pet.imageUrl || ""}
+            />
         </div>
       </div>
     </div>

@@ -30,11 +30,16 @@ const Navbar = () => {
               <Navlink href="/all-pets">All pets</Navlink>
             </li>
             <li>
-              <Navlink href="/#">My requests</Navlink>
+              <Navlink href="/dashboard/my-requests">My requests</Navlink>
             </li>
             <li>
               <Navlink href="/dashboard/add-pets">Add pet</Navlink>
             </li>
+            
+            <li>
+              <Navlink href="/dashboard/my-listings">My Listings</Navlink>
+            </li>
+
           </ul>
         </div>
         <div className="flex items-center gap-6">
