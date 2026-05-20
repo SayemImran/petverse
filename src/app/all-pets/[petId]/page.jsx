@@ -100,6 +100,7 @@ const PetDetailsPage = async ({ params }) => {
           </div>
           
             <PetAdoptionForm
+            petId={pet._id}
               petName={pet.petName || ""}
               ownerID={pet.ownerID}
               petLocation={pet.location || ""}

@@ -12,26 +12,27 @@ const MyListings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const fetchRequests = async () => {
     if (!userInfo?.id) return;
+    try {
+      const res = await fetch(
+        `http://localhost:3001/adoptionrequests/owner/${userInfo.id}`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch requests");
+      const data = await res.json();
+      setRequests(data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load adoption requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchRequests = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:3001/adoptionrequests/owner/${userInfo.id}`,
-        );
-        if (!res.ok) throw new Error("Failed to fetch requests");
-        const data = await res.json();
-        setRequests(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load adoption requests.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRequests();
+  useEffect(() => {
+    if (userInfo?.id) {
+      fetchRequests();
+    }
   }, [userInfo?.id]);
 
   if (loading) {
@@ -70,7 +71,11 @@ const MyListings = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {requests.map((req) => (
-              <ListingCard key={req._id} req={req} />
+              <ListingCard 
+                key={req._id} 
+                req={req} 
+                onStatusUpdate={fetchRequests} 
+              />
             ))}
           </div>
         )}

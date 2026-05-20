@@ -2,7 +2,7 @@
 import { useSession } from "@/app/lib/auth-client";
 import React, { useState } from "react";
 
-const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, petImage }) => {
+const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, petImage, petId }) => {
   const { data: sessionData } = useSession();
   const userInfo = sessionData?.user;
   const [pickupDate, setPickupDate] = useState("");
@@ -48,6 +48,7 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
       petLocation: petLocation,
       price: price,
       petImage: petImage,
+      petId: petId,
     };
 
     try {

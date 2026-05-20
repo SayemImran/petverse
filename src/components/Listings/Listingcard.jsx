@@ -1,75 +1,144 @@
+"use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import RequestModal from "../modals/RequestModal";
 import Image from "next/image";
-import { Button } from "@heroui/react";
 
-const statusStyles = {
-  pending: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
-  approved: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-  rejected: "bg-rose-500/20 text-rose-300 border border-rose-500/30",
-};
+const ListingCard = ({ req, onStatusUpdate }) => {
+  const [isDeleting, setIsDeleting] = useState(false);
 
-const ListingCard = ({ req }) => {
+  
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${req.petName}? This action cannot be undone.`,
+    );
+
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const petId = req.petId || req._id;
+
+      const response = await fetch(`http://localhost:3001/pets/${petId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete record");
+
+      alert("Pet profile successfully deleted.");
+      if (onStatusUpdate) onStatusUpdate(); // Reload list
+    } catch (err) {
+      console.error(err);
+      alert("Error removing pet. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="w-full max-w-sm rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl p-5 hover:border-white/20 transition-all duration-300">
-      {/* Pet Image Container */}
-      <div className="relative w-full h-48 overflow-hidden rounded-xl bg-black/20 mb-4">
-        <Image
-          src={req.petImage || "/assets/petverse_logo.svg"}
-          alt={`Image of ${req.petName}`}
-          fill
-          className="object-cover transition-transform duration-500 hover:scale-105"
-        />
-      </div>
-
-      {/* Content Section */}
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-xl font-bold text-white tracking-wide">{req.petName}</h3>
-            <p className="text-sm font-medium text-gray-300 mt-0.5">${req.price}</p>
+    <div className="rounded-xl border border-white/10 bg-slate-900/60 shadow-xl overflow-hidden flex flex-col h-full group hover:border-white/20 transition-all duration-300">
+      {/* Image Block */}
+      <div className="relative h-48 w-full bg-slate-950 overflow-hidden border-b border-white/5">
+        {req.petImage ? (
+          <Image
+            src={req.petImage}
+            alt={req.petName}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            width={400}
+            height={300}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white/20 bg-slate-950 text-sm">
+            No image available
           </div>
-          
-          {/* Status Badge */}
+        )}
+
+        <div className="absolute top-3 right-3">
           <span
-            className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-              statusStyles[req.status] || statusStyles.pending
+            className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md border ${
+              req.status === "approved"
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                : req.status === "rejected"
+                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                  : "bg-amber-500/10 text-amber-400 border-amber-500/20"
             }`}
           >
-            {req.status}
+            {req.status || "pending"}
           </span>
         </div>
+      </div>
 
-        {/* Modal / Details Row */}
-        <div className="p-3 rounded-lg bg-black/10 border border-white/5">
+      {/* Description Content Section */}
+      <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex justify-between items-start">
+            <h3 className="text-xl font-bold text-white capitalize tracking-wide">
+              {req.petName}
+            </h3>
+            {req.price && (
+              <span className="text-cyan-400 font-semibold text-sm bg-cyan-400/10 px-2 py-0.5 rounded-md border border-cyan-400/10">
+                ${req.price}
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-1 text-sm text-white/60 pt-1">
+            <p>
+              <span className="text-white/40 font-medium">Applicant:</span>{" "}
+              {req.userName}
+            </p>
+            <p className="truncate">
+              <span className="text-white/40 font-medium">Location:</span>{" "}
+              {req.petLocation || "Not specified"}
+            </p>
+          </div>
+        </div>
+
+        {/* NEW CRUD OPERATIONS BUTTON PANEL */}
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+          {/* View Details Navigation */}
+          <Link
+            href={`/all-pets/${req.petId || req._id}`}
+            className="text-center rounded-lg py-2 text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5"
+          >
+            View
+          </Link>
+
+          {/* Edit Routing Trigger */}
+          <Link
+            href={`/dashboard/edit-pet/${req.petId || req._id}`}
+            className="text-center rounded-lg py-2 text-xs font-medium text-cyan-400 bg-cyan-500/5 hover:bg-cyan-500/10 transition-colors border border-cyan-500/10"
+          >
+            Edit
+          </Link>
+
+          {/* Delete Action Trigger */}
+          <button
+            disabled={isDeleting}
+            onClick={handleDelete}
+            type="button"
+            className="rounded-lg py-2 text-xs font-medium text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 transition-colors border border-rose-500/10 disabled:opacity-40"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+
+        {/* Original Adoption Requests Drawer Trigger */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/5">
+          <span className="text-xs text-white/40 font-mono">
+            {req.pickupDate
+              ? `Pickup: ${new Date(req.pickupDate).toLocaleDateString()}`
+              : "No pickup date"}
+          </span>
+
           <RequestModal
+            requestId={req._id}
             requester={req.userName}
             reqEmail={req.userEmail}
             pickupDate={req.pickupDate}
             message={req.message}
+            onStatusUpdate={onStatusUpdate}
           />
-        </div>
-
-        {/* Action Buttons - Clean Grid Layout */}
-        <div className="grid grid-cols-3 gap-2 pt-2">
-          <Button 
-            variant="primary" 
-            className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/10 backdrop-blur-sm text-xs font-semibold py-2 rounded-lg transition-colors"
-          >
-            View
-          </Button>
-          <Button 
-            variant="secondary"
-            className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/20 backdrop-blur-sm text-xs font-semibold py-2 rounded-lg transition-colors"
-          >
-            Edit
-          </Button>
-          <Button 
-            variant="danger"
-            className="w-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/20 backdrop-blur-sm text-xs font-semibold py-2 rounded-lg transition-colors"
-          >
-            Delete
-          </Button>
         </div>
       </div>
     </div>
