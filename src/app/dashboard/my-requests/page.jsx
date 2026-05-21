@@ -1,17 +1,28 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "@/app/lib/auth-client";
+import { useRouter } from "next/navigation"; // Added router import for navigation guard
 import Link from "next/link";
 import { toast } from "sonner";
 
 const MyRequestPage = () => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, isPending } = useSession();
   const userInfo = sessionData?.user;
+  const router = useRouter();
 
   const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cancelingId, setCancelingId] = useState(null);
+
+  // Client-side Protection Guard
+  useEffect(() => {
+    // Kick user to login if auth is finished loading and no active session exists
+    if (!isPending && !userInfo) {
+      toast.error("Please log in to view your submitted adoption requests!");
+      router.push("/login?callbackUrl=/my-requests"); // Adjust route path if necessary
+    }
+  }, [userInfo, isPending, router]);
 
   const fetchMyRequests = async () => {
     if (!userInfo?.id) return;
@@ -31,11 +42,6 @@ const MyRequestPage = () => {
     }
   };
 
-
-
-
-
-
   useEffect(() => {
     if (userInfo?.id) {
       fetchMyRequests();
@@ -44,8 +50,6 @@ const MyRequestPage = () => {
 
   // Handler rule to delete / cancel the active submission safely
   const handleCancelRequest = async (requestId, petName) => {
-   
-
     setCancelingId(requestId);
     try {
       const res = await fetch(
@@ -61,7 +65,7 @@ const MyRequestPage = () => {
       setMyRequests((prevRequests) =>
         prevRequests.filter((req) => req._id !== requestId),
       );
-      toast.success("Adoption request retracted successfully.");
+      toast.success(`Adoption request for ${petName || "pet"} retracted successfully.`);
     } catch (err) {
       console.error(err);
       toast.error("Error canceling request. Please try again later.");
@@ -70,11 +74,8 @@ const MyRequestPage = () => {
     }
   };
 
-
-
-
-  
-  if (loading) {
+  // Render uniform full-screen spinner while auth status is being resolved
+  if (isPending || (loading && userInfo)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
         <p className="animate-pulse tracking-widest text-cyan-400 font-mono">
@@ -93,6 +94,9 @@ const MyRequestPage = () => {
       </div>
     );
   }
+
+  // Prevent UI flash if user is unauthenticated and redirecting is processing
+  if (!userInfo) return null;
 
   return (
     <div className="min-h-screen bg-slate-950/95 text-white px-6 py-10">

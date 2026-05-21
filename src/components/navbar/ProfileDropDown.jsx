@@ -2,8 +2,10 @@
 import { signOut } from "@/app/lib/auth-client";
 import { Button, Dropdown, Label } from "@heroui/react";
 import Image from "next/image";
-
+import { useRouter } from "next/navigation";
 const ProfileDropDown = ({user}) => {
+
+  const router = useRouter();
   return (
     <div>
       <Dropdown>
@@ -19,7 +21,10 @@ const ProfileDropDown = ({user}) => {
               id="logout"
               textValue="logout"
               variant="danger"
-              onClick={()=>signOut()}
+              onClick={async () => {
+                await signOut();
+                router.refresh();
+              }}
             >
               <Label>Logout</Label>
             </Dropdown.Item>

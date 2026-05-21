@@ -1,5 +1,10 @@
 import HeroSection from "@/components/hero/HeroSection";
 import FeaturedPetsSection from "@/components/pets/FeaturedPetsSection";
+import WhyAdopt from "@/components/home/WhyAdopt";
+import SuccessStories from "@/components/home/SuccessStories";
+import PetCareTips from "@/components/home/PetCareTips";
+import FAQSection from "@/components/home/FAQSection";
+import GetInvolved from "@/components/home/GetInvolved";
 import Image from "next/image";
 
 export default function Home() {
@@ -24,6 +29,11 @@ export default function Home() {
         viewAllLink="/all-pets"
         enableAnimation={true}
       />
+      <WhyAdopt />
+      <SuccessStories />
+      <PetCareTips />
+      <GetInvolved />
+      <FAQSection />
     </>
   );
 }

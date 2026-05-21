@@ -1,17 +1,26 @@
 "use client";
-import { useSession } from "@/app/lib/auth-client";
+import { authClient, useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 
+
+
+const gettoken = async ()=>{
+  const {data:tokenData} = await authClient.token();
+  return tokenData?.token;
+}
+
 const UpdatePetPage = () => {
-  const { data: sessionData } = useSession();
+  // Destructured isPending to ensure page waits for auth check completion
+  const { data: sessionData, isPending } = useSession();
   const userInfo = sessionData?.user;
-  const params = useParams(); 
+  const params = useParams();
   const router = useRouter();
-  
-  const petId = params?.id;
+
+  // Universal route guard: captures both [id] and [petId] folder configurations
+  const petId = params?.id || params?.petId;
 
   const [form, setForm] = useState({
     petName: "",
@@ -30,27 +39,49 @@ const UpdatePetPage = () => {
 
   const [loading, setLoading] = useState(true);
 
+  // Authentication & Authorization Route Guard
+  useEffect(() => {
+    if (!isPending && !userInfo) {
+      toast.error("Please log in to manage your pet profile parameters.");
+      router.push("/login?callbackUrl=" + window.location.pathname);
+    }
+  }, [userInfo, isPending, router]);
+
+  // Data Loading Block
   useEffect(() => {
     const fetchPetDetails = async () => {
-      if (!petId) return;
+      const token = await gettoken();
+      // Don't fire if params haven't populated yet or session is checking
+      if (!petId || isPending || !userInfo) return;
+
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`,
+          {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        console.log("Backend response status:", response.status);
         if (!response.ok) throw new Error("Failed to read pet details");
-        
+
         const data = await response.json();
+
+        // Safeguards against lowercase/uppercase database schema property variations
         setForm({
-          petName: data.petName || "",
+          petName: data.petName || data.name || "",
           species: data.species || "",
           breed: data.breed || "",
-          age: data.age || "",
+          age: data.age !== undefined ? data.age : "",
           gender: data.gender || "",
-          imageUrl: data.imageUrl || "",
-          healthStatus: data.healthStatus || "",
-          vaccinationStatus: data.vaccinationStatus || "",
+          imageUrl: data.imageUrl || data.image || "",
+          healthStatus: data.healthStatus || data.health || "",
+          vaccinationStatus: data.vaccinationStatus || data.vaccination || "",
           location: data.location || "",
-          adoptionFee: data.adoptionFee || "",
+          adoptionFee: data.adoptionFee || data.fee || "",
           description: data.description || "",
-          ownerID: data.ownerID || "",
+          ownerID: data.ownerID || data.ownerId || data.userId || "",
         });
       } catch (err) {
         console.error("Fetch error:", err);
@@ -61,7 +92,7 @@ const UpdatePetPage = () => {
     };
 
     fetchPetDetails();
-  }, [petId]);
+  }, [petId, userInfo, isPending]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -70,15 +101,20 @@ const UpdatePetPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const token = await gettoken();
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          credentials: "include", // 🔑 Secures the submission request against 401 response errors too
+          body: JSON.stringify(form),
         },
-        body: JSON.stringify(form),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to apply update changes");
@@ -89,35 +125,45 @@ const UpdatePetPage = () => {
       setTimeout(() => {
         router.push("/dashboard/my-listings");
       }, 1500);
-
     } catch (err) {
       console.error("Error updating pet: ", err);
       toast.error("Failed to save changes. Please try again.");
     }
   };
 
-  if (loading) {
+  // Halt interface during initial auth status resolution or data fetching
+  if (isPending || (loading && userInfo)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <p className="text-cyan-400 animate-pulse text-lg">Loading profile data layout...</p>
+        <p className="text-cyan-400 animate-pulse text-lg tracking-wider font-mono">
+          LOADING PROFILE DATA LAYOUT...
+        </p>
       </div>
     );
   }
+
+  // Prevent layout flicker if user is logged out
+  if (!userInfo) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 py-12 px-4">
       <div className="mx-auto w-full max-w-4xl">
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur-3xl">
           <div className="mb-8 space-y-2 text-center">
-            <h1 className="text-3xl font-semibold text-white">Edit Pet Profile</h1>
-            <p className="text-slate-300">Modify the fields below to update your pet listing</p>
+            <h1 className="text-3xl font-semibold text-white">
+              Edit Pet Profile
+            </h1>
+            <p className="text-slate-300">
+              Modify the fields below to update your pet listing
+            </p>
           </div>
-
 
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Pet Name</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Pet Name
+                </span>
                 <input
                   type="text"
                   name="petName"
@@ -129,7 +175,9 @@ const UpdatePetPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Species</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Species
+                </span>
                 <select
                   name="species"
                   value={form.species}
@@ -150,7 +198,9 @@ const UpdatePetPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Breed</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Breed
+                </span>
                 <input
                   type="text"
                   name="breed"
@@ -175,7 +225,9 @@ const UpdatePetPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Gender</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Gender
+                </span>
                 <select
                   name="gender"
                   value={form.gender}
@@ -190,7 +242,9 @@ const UpdatePetPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Image URL</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Image URL
+                </span>
                 <input
                   type="url"
                   name="imageUrl"
@@ -204,7 +258,9 @@ const UpdatePetPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Health Status</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Health Status
+                </span>
                 <input
                   type="text"
                   name="healthStatus"
@@ -215,7 +271,9 @@ const UpdatePetPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Vaccination Status</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Vaccination Status
+                </span>
                 <select
                   name="vaccinationStatus"
                   value={form.vaccinationStatus}
@@ -232,7 +290,9 @@ const UpdatePetPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Location</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Location
+                </span>
                 <input
                   type="text"
                   name="location"
@@ -243,7 +303,9 @@ const UpdatePetPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Adoption Fee</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Adoption Fee
+                </span>
                 <input
                   type="number"
                   name="adoptionFee"
@@ -258,7 +320,9 @@ const UpdatePetPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Description</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Description
+                </span>
                 <textarea
                   name="description"
                   value={form.description}
@@ -269,7 +333,9 @@ const UpdatePetPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">Owner Email Reference</span>
+                <span className="text-sm font-medium text-slate-200">
+                  Owner Email Reference
+                </span>
                 <input
                   type="email"
                   name="email"
@@ -288,7 +354,7 @@ const UpdatePetPage = () => {
                 <FloppyDisk className="size-4" />
                 Save Changes
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => router.push("/dashboard/my-listings")}
