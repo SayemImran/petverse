@@ -53,6 +53,8 @@ const ListingCard = ({ pet, onOpenRequests, onRefresh }) => {
           <Image
             src={petImageSrc}
             alt={petName}
+            width={96}
+            height={96}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
               e.target.src = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=400";
