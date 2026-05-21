@@ -30,7 +30,7 @@ const AddPetsPage = () => {
     // If the authentication status is no longer loading and no user session exists
     if (!isPending && !userInfo) {
       toast.error("Please log in to add a pet!");
-      router.push("/login?callbackUrl=/add-pets"); 
+      router.push("/login?callbackUrl=/add-pets");
     }
   }, [userInfo, isPending, router]);
 
@@ -56,16 +56,20 @@ const AddPetsPage = () => {
 
     const data = { ...form, ownerID: userInfo.id };
     console.log("Submitting pet data: ", data);
-
+    const tokenResponse = await authClient.getToken(); // gets the JWT
+    const token = tokenResponse?.data?.token;
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${sessionData.token}`, // Include token for authentication
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pets`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`, // Include token for authentication
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to add pet");
@@ -313,21 +317,23 @@ const AddPetsPage = () => {
                 Save Pet
               </button>
               <button
-                type="button" 
-                onClick={() => setForm({
-                  petName: "",
-                  species: "",
-                  breed: "",
-                  age: "",
-                  gender: "",
-                  imageUrl: "",
-                  healthStatus: "",
-                  vaccinationStatus: "",
-                  location: "",
-                  adoptionFee: "",
-                  description: "",
-                  ownerID: userInfo?.id || "",
-                })}
+                type="button"
+                onClick={() =>
+                  setForm({
+                    petName: "",
+                    species: "",
+                    breed: "",
+                    age: "",
+                    gender: "",
+                    imageUrl: "",
+                    healthStatus: "",
+                    vaccinationStatus: "",
+                    location: "",
+                    adoptionFee: "",
+                    description: "",
+                    ownerID: userInfo?.id || "",
+                  })
+                }
                 className="flex-1 rounded-lg border border-white/10 bg-slate-800/50 px-6 py-2 font-semibold text-slate-200 transition hover:bg-slate-800"
               >
                 Clear
