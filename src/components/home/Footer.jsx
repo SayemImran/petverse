@@ -68,7 +68,6 @@ export default function Footer() {
                                     </Link>
                                 </li>
                                 <li>
-                                    {/* Added prefetch={false} to stop Vercel 404 logs */}
                                     <Link href="/about" prefetch={false} className="hover:underline">
                                         About Us
                                     </Link>
@@ -79,19 +78,16 @@ export default function Footer() {
                             <h4 className="font-semibold text-white">Support</h4>
                             <ul className="mt-3 space-y-2 text-sm">
                                 <li>
-                                    {/* Added prefetch={false} to stop Vercel 404 logs */}
                                     <Link href="/contact" prefetch={false} className="hover:underline">
                                         Contact
                                     </Link>
                                 </li>
                                 <li>
-                                    {/* Added prefetch={false} to stop Vercel 404 logs */}
                                     <Link href="/faq" prefetch={false} className="hover:underline">
                                         FAQ
                                     </Link>
                                 </li>
                                 <li>
-                                    {/* Added prefetch={false} to stop Vercel 404 logs */}
                                     <Link href="/terms" prefetch={false} className="hover:underline">
                                         Terms
                                     </Link>
@@ -126,7 +122,6 @@ export default function Footer() {
                 <div className="mt-8 border-t border-white/5 pt-6 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-3">
                     <div>© {new Date().getFullYear()} Petverse — All rights reserved.</div>
                     <div className="flex gap-4">
-                        {/* Added prefetch={false} to stop Vercel 404 logs */}
                         <Link href="/privacy" prefetch={false} className="hover:underline">
                             Privacy
                         </Link>
@@ -139,4 +134,3 @@ export default function Footer() {
         </footer>
     );
 }
-```</Link>
