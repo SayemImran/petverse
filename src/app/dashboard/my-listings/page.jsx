@@ -1,22 +1,34 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "@/app/lib/auth-client";
+import { useRouter } from "next/navigation"; 
 import EmptyListings from "@/components/Listings/Emptylistings";
 import ListingCard from "@/components/Listings/Listingcard";
+import { toast } from "sonner"; 
 
 const MyListings = () => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, isPending } = useSession();
   const userInfo = sessionData?.user;
+  const router = useRouter();
 
   const [pets, setPets] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Modal  States
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPetRequests, setSelectedPetRequests] = useState([]);
   const [activePetName, setActivePetName] = useState("");
+
+  // Client-side Protection Guard
+  useEffect(() => {
+    // Kick user to login if auth is finished loading and no active session exists
+    if (!isPending && !userInfo) {
+      toast.error("Please log in to access your listings dashboard!");
+      router.push("/login?callbackUrl=/my-listings"); // Adjust route path 
+    }
+  }, [userInfo, isPending, router]);
 
   const fetchDashboardData = async () => {
     if (!userInfo?.id) return;
@@ -55,9 +67,7 @@ const MyListings = () => {
     setIsModalOpen(true);
   };
 
-
-
-  //  request Approval or Rejection status directly from Modal UI
+  // request Approval or Rejection status directly from Modal UI
   const handleRequestAction = async (requestId, actionStatus) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/adoptionrequests/${requestId}/status`, {
@@ -77,14 +87,13 @@ const MyListings = () => {
     }
   };
 
-
-
   // count Stats counters dynamically
   const totalListings = pets.length;
   const availableCount = pets.filter(p => p.status === "Available" || !p.status).length;
   const adoptedCount = pets.filter(p => p.status === "Adopted").length;
 
-  if (loading) {
+  // Render uniform full-screen spinner while auth status is being resolved
+  if (isPending || (loading && userInfo)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
         <p className="animate-pulse tracking-widest text-cyan-400">LOADING DATA ENGINE...</p>
@@ -100,7 +109,8 @@ const MyListings = () => {
     );
   }
 
-
+  // Prevent UI flash if user is unauthenticated and redirecting is processing
+  if (!userInfo) return null;
 
   return (
     <div className="min-h-screen bg-slate-950/95 text-white px-6 py-10">
@@ -114,7 +124,7 @@ const MyListings = () => {
           <h1 className="text-4xl font-extrabold mt-3 tracking-tight">My Listings Dashboard</h1>
         </div>
 
-        {/*  STATS PANEL BLOCK */}
+        {/* STATS PANEL BLOCK */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
           <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-xl">
             <h3 className="text-sm text-slate-400 uppercase tracking-wider">Total Listings</h3>
@@ -129,9 +139,6 @@ const MyListings = () => {
             <p className="text-3xl font-black text-amber-500 mt-1">{adoptedCount}</p>
           </div>
         </div>
-
-
-
 
         {/* CARDS LISTING VIEW GRID */}
         {pets.length === 0 ? (
@@ -149,11 +156,7 @@ const MyListings = () => {
           </div>
         )}
 
-
-
-
-
-        {/*  ADOPTION REQUESTS MODAL  */}
+        {/* ADOPTION REQUESTS MODAL */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 relative max-h-[85vh] overflow-y-auto shadow-2xl">
@@ -201,9 +204,7 @@ const MyListings = () => {
                         </div>
                       </div>
 
-
-
-                      {/*  Show Approve/Reject ONLY if status remains pending */}
+                      {/* Show Approve/Reject ONLY if status remains pending */}
                       {req.status === "pending" && (
                         <div className="flex sm:flex-col gap-2 shrink-0">
                           <button
