@@ -4,8 +4,7 @@ import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
-import { auth } from "@/app/lib/auth";
-import { headers } from "next/headers";
+
 
 const gettoken = async () => {
   const { data: tokenData } = await authClient.token();

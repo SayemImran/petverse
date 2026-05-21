@@ -4,8 +4,6 @@ import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Import the client router
 import { toast } from "sonner";
-import { auth } from "@/app/lib/auth";
-import { headers } from "next/headers";
 
 const AddPetsPage = () => {
   const { data: sessionData, isPending } = useSession();
