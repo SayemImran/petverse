@@ -1,5 +1,5 @@
 "use client";
-import { useSession } from "@/app/lib/auth-client";
+import { authClient, useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Import the client router
