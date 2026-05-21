@@ -1,11 +1,41 @@
 import Image from "next/image";
 import React from "react";
 import PetAdoptionForm from "@/components/pets/PetAdoptionForm";
+import { headers } from "next/headers";
+import { auth } from "@/app/lib/auth";
+import { redirect } from "next/navigation"; // Native server redirect handler
 
 const PetDetailsPage = async ({ params }) => {
+  // 1. Resolve URL parameters early
   const { petId } = await params;
-  console.log("atrgeted pet id : ", petId);
+  console.log("targeted pet id : ", petId);
+
+  let token = null;
+
+  // 2. Wrap Better-Auth in a try/catch block
+  try {
+    const session = await auth.api.getToken({
+      headers: await headers(),
+    });
+    token = session?.token;
+  } catch (error) {
+    console.log("Better-Auth threw an error (User likely unauthenticated):", error.message);
+    // If Better-Auth throws an error, immediately intercept and redirect to login
+    redirect(`/login?callbackUrl=/all-pets/${petId}`);
+  }
+
+  // 3. Fallback check: It didn't throw an error, but token is somehow still empty
+  if (!token) {
+    redirect(`/login?callbackUrl=/all-pets/${petId}`);
+  }
+
+  console.log("Successfully retrieved token: ", token);
+
+  // 4. Secure API fetch safely runs now
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`, {
+    headers: {
+      authorization: `Bearer ${token}`
+    },
     cache: "no-store",
   });
 
@@ -31,10 +61,9 @@ const PetDetailsPage = async ({ params }) => {
           <span className="inline-flex rounded-full bg-cyan-400/10 px-3 py-1 text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
             Pet Details
           </span>
-          <h1 className="mt-4 text-4xl font-semibold text-white">{pet.name}</h1>
+          <h1 className="mt-4 text-4xl font-semibold text-white">{pet.petName || pet.name}</h1>
           <p className="max-w-2xl text-white/70 mt-3">
-            {pet.description ||
-              `Discover more about ${pet.name} and submit a request to adopt.`}
+            {pet.description || `Discover more about ${pet.petName || pet.name} and submit a request to adopt.`}
           </p>
         </div>
 
@@ -43,7 +72,7 @@ const PetDetailsPage = async ({ params }) => {
             <div className="relative overflow-hidden rounded-[1.75rem] bg-slate-950/20 aspect-[16/9]">
               <Image
                 src={pet.imageUrl || "/assets/petverse_logo.svg"}
-                alt={`Image of ${pet.name}`}
+                alt={`Image of ${pet.petName || pet.name}`}
                 fill
                 className="object-cover"
               />
@@ -52,11 +81,10 @@ const PetDetailsPage = async ({ params }) => {
             <div className="mt-6 grid gap-6">
               <div className="space-y-3 rounded-3xl border border-white/10 bg-slate-950/30 p-5">
                 <h2 className="text-xl font-semibold text-white">
-                  About {pet.name}
+                  About {pet.petName || pet.name}
                 </h2>
                 <p className="text-sm leading-7 text-white/70">
-                  {pet.description ||
-                    "A wonderful companion waiting for a new home."}
+                  {pet.description || "A wonderful companion waiting for a new home."}
                 </p>
               </div>
 
@@ -110,14 +138,14 @@ const PetDetailsPage = async ({ params }) => {
             </div>
           </div>
           
-            <PetAdoptionForm
+          <PetAdoptionForm
             petId={pet._id}
-              petName={pet.petName || ""}
-              ownerID={pet.ownerID}
-              petLocation={pet.location || ""}
-              price={pet.adoptionFee || 0}
-              petImage={pet.imageUrl || ""}
-            />
+            petName={pet.petName || ""}
+            ownerID={pet.ownerID}
+            petLocation={pet.location || ""}
+            price={pet.adoptionFee || 0}
+            petImage={pet.imageUrl || ""}
+          />
         </div>
       </div>
     </div>

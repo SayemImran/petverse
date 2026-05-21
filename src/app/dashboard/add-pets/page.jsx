@@ -2,11 +2,13 @@
 import { useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // Import the client router
 import { toast } from "sonner";
 
 const AddPetsPage = () => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, isPending } = useSession();
   const userInfo = sessionData?.user;
+  const router = useRouter();
 
   const [form, setForm] = useState({
     petName: "",
@@ -23,6 +25,15 @@ const AddPetsPage = () => {
     ownerID: "",
   });
 
+  // Client-side Protection Guard
+  useEffect(() => {
+    // If the authentication status is no longer loading and no user session exists
+    if (!isPending && !userInfo) {
+      toast.error("Please log in to add a pet!");
+      router.push("/login?callbackUrl=/add-pets"); 
+    }
+  }, [userInfo, isPending, router]);
+
   useEffect(() => {
     if (userInfo?.id) {
       setForm((prev) => ({ ...prev, ownerID: userInfo.id }));
@@ -37,7 +48,13 @@ const AddPetsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = { ...form, ownerID: userInfo?.id || "" };
+    // Secondary security block in case they bypass the HTML interaction elements
+    if (!userInfo?.id) {
+      toast.error("You must be logged in to complete this action.");
+      return;
+    }
+
+    const data = { ...form, ownerID: userInfo.id };
     console.log("Submitting pet data: ", data);
 
     try {
@@ -45,6 +62,7 @@ const AddPetsPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${sessionData.token}`, // Include token for authentication
         },
         body: JSON.stringify(data),
       });
@@ -69,7 +87,7 @@ const AddPetsPage = () => {
         location: "",
         adoptionFee: "",
         description: "",
-        ownerID: userInfo?.id || "",
+        ownerID: userInfo.id,
       });
     } catch (err) {
       console.error("Error adding pet: ", err);
@@ -77,6 +95,17 @@ const AddPetsPage = () => {
     }
   };
 
+  // While Better-Auth determines if a cookie session exists, render a clean loading spinner
+  if (isPending) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  // If loading is done but no user is found, render nothing while the useEffect router kick activates
+  if (!userInfo) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 py-12 px-4">
@@ -86,7 +115,6 @@ const AddPetsPage = () => {
             <h1 className="text-3xl font-semibold text-white">Add New Pet</h1>
             <p className="text-slate-300">Fill in the pet details below</p>
           </div>
-
 
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid gap-4 lg:grid-cols-2">
@@ -285,7 +313,21 @@ const AddPetsPage = () => {
                 Save Pet
               </button>
               <button
-                type="reset"
+                type="button" 
+                onClick={() => setForm({
+                  petName: "",
+                  species: "",
+                  breed: "",
+                  age: "",
+                  gender: "",
+                  imageUrl: "",
+                  healthStatus: "",
+                  vaccinationStatus: "",
+                  location: "",
+                  adoptionFee: "",
+                  description: "",
+                  ownerID: userInfo?.id || "",
+                })}
                 className="flex-1 rounded-lg border border-white/10 bg-slate-800/50 px-6 py-2 font-semibold text-slate-200 transition hover:bg-slate-800"
               >
                 Clear
