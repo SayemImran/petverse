@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🐾 Petverse
 
-## Getting Started
+An ultra-modern SaaS marketplace platform connecting animals in need with forever homes while empowering local animal shelters with modern management tools.
 
-First, run the development server:
+---
 
+## 🛠️ Tech Stack
+
+*   **Next.js** – Full-stack framework leveraging App Router and Server Actions.
+*   **MongoDB** – Document-based database for scalable pet profiles and user metadata.
+*   **Better-Auth** – Modern, secure authentication framework handling sessions and security.
+*   **JWT (JSON Web Tokens)** – Lightweight, stateless tokens for secure API and route protection.
+
+---
+
+## 📦 Core Packages
+
+*   **Hero UI** – Modern, accessible component library delivering sharp glassmorphism layouts.
+*   **React Icons** – Robust, multi-set icon library (utilizing `io5` and `fa6` frameworks).
+
+---
+
+## ⚡ Getting Started
+
+Follow these steps to spin up the application locally.
+
+### 1. Clone the Repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone [https://github.com/your-username/petverse.git](https://github.com/your-username/petverse.git)
+cd petverse
