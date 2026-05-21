@@ -4,6 +4,8 @@ import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Import the client router
 import { toast } from "sonner";
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
 
 const AddPetsPage = () => {
   const { data: sessionData, isPending } = useSession();
@@ -47,6 +49,18 @@ const AddPetsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let token = null;
+
+    try {
+      const session = await auth.api.getToken({
+        headers: await headers(),
+      });
+      token = session?.token;
+    } catch (error) {
+      console.error("Error fetching token:", error);
+      toast.error("Failed to authenticate. Please try again.");
+      return;
+    }
 
     // Secondary security block in case they bypass the HTML interaction elements
     if (!userInfo?.id) {
@@ -56,8 +70,7 @@ const AddPetsPage = () => {
 
     const data = { ...form, ownerID: userInfo.id };
     console.log("Submitting pet data: ", data);
-    const tokenResponse = await authClient.getToken(); // gets the JWT
-    const token = tokenResponse?.data?.token;
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/pets`,

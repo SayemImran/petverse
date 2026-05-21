@@ -3,16 +3,14 @@ import React from "react";
 import PetAdoptionForm from "@/components/pets/PetAdoptionForm";
 import { headers } from "next/headers";
 import { auth } from "@/app/lib/auth";
-import { redirect } from "next/navigation"; // Native server redirect handler
+import { redirect } from "next/navigation"; 
 
 const PetDetailsPage = async ({ params }) => {
-  // 1. Resolve URL parameters early
   const { petId } = await params;
   console.log("targeted pet id : ", petId);
 
   let token = null;
 
-  // 2. Wrap Better-Auth in a try/catch block
   try {
     const session = await auth.api.getToken({
       headers: await headers(),
@@ -24,14 +22,13 @@ const PetDetailsPage = async ({ params }) => {
     redirect(`/login?callbackUrl=/all-pets/${petId}`);
   }
 
-  // 3. Fallback check: It didn't throw an error, but token is somehow still empty
+  //It didn't throw an error, but token is somehow still empty
   if (!token) {
     redirect(`/login?callbackUrl=/all-pets/${petId}`);
   }
 
   console.log("Successfully retrieved token: ", token);
 
-  // 4. Secure API fetch safely runs now
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`, {
     headers: {
       authorization: `Bearer ${token}`

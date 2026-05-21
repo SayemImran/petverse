@@ -4,13 +4,13 @@ import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
 
-
-
-const gettoken = async ()=>{
-  const {data:tokenData} = await authClient.token();
+const gettoken = async () => {
+  const { data: tokenData } = await authClient.token();
   return tokenData?.token;
-}
+};
 
 const UpdatePetPage = () => {
   // Destructured isPending to ensure page waits for auth check completion
@@ -50,7 +50,12 @@ const UpdatePetPage = () => {
   // Data Loading Block
   useEffect(() => {
     const fetchPetDetails = async () => {
-      const token = await gettoken();
+      let token = null;
+      const session = await auth.api.getToken({
+        headers: await headers(),
+      });
+      token = session?.token;
+
       // Don't fire if params haven't populated yet or session is checking
       if (!petId || isPending || !userInfo) return;
 
@@ -111,7 +116,7 @@ const UpdatePetPage = () => {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
           },
-          credentials: "include", // 🔑 Secures the submission request against 401 response errors too
+          credentials: "include", 
           body: JSON.stringify(form),
         },
       );
