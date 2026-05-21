@@ -51,11 +51,10 @@ const AddPetsPage = () => {
     e.preventDefault();
     let token = null;
 
+    // token generation 
     try {
-      const session = await auth.api.getToken({
-        headers: await headers(),
-      });
-      token = session?.token;
+      const {data:tokenData} = await authClient.token();
+      token = tokenData?.token;
     } catch (error) {
       console.error("Error fetching token:", error);
       toast.error("Failed to authenticate. Please try again.");

@@ -50,11 +50,11 @@ const UpdatePetPage = () => {
   // Data Loading Block
   useEffect(() => {
     const fetchPetDetails = async () => {
+
+      // token generation
       let token = null;
-      const session = await auth.api.getToken({
-        headers: await headers(),
-      });
-      token = session?.token;
+      const {data:tokenData} = await authClient.token();
+      token = tokenData?.token;
 
       // Don't fire if params haven't populated yet or session is checking
       if (!petId || isPending || !userInfo) return;
