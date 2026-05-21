@@ -18,11 +18,12 @@ const FeaturedPetsSection = ({
 
   useEffect(() => {
     const fetchPets = async () => {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      console.log("Backend URL:", backendUrl);
       try {
         setLoading(true);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/pets?limit=${limit}`,
-          { cache: "no-store" },
         );
 
         if (!response.ok) {
