@@ -1,9 +1,17 @@
 "use client";
-import { useSession } from "@/app/lib/auth-client";
+import { authClient, useSession } from "@/app/lib/auth-client";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
-const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, petImage, petId }) => {
+const PetAdoptionForm = ({
+  petName,
+  ownerID,
+  petAdopted,
+  petLocation,
+  price,
+  petImage,
+  petId,
+}) => {
   const { data: sessionData } = useSession();
   const userInfo = sessionData?.user;
   const [pickupDate, setPickupDate] = useState("");
@@ -13,7 +21,9 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
   if (petAdopted) {
     return (
       <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur-3xl text-center">
-        <h2 className="text-2xl font-semibold text-white">This pet has already been adopted</h2>
+        <h2 className="text-2xl font-semibold text-white">
+          This pet has already been adopted
+        </h2>
         <p className="mt-3 text-sm text-white/70">
           The adoption request window is closed for this listing.
         </p>
@@ -47,14 +57,21 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
       petImage: petImage,
       petId: petId,
     };
-
+    const { data: tokenData } = await authClient.token();
+    const token = tokenData?.token;
     try {
       setIsSubmitting(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/adoptionrequests`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/adoptionrequests`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to submit adoption request.");
@@ -148,7 +165,6 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
                 className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-white outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
               />
             </label>
-
 
             <button
               type="submit"

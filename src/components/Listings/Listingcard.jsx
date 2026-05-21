@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
+import { authClient } from "@/app/lib/auth-client";
 
 const ListingCard = ({ pet, onOpenRequests, onRefresh }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -24,11 +25,16 @@ const ListingCard = ({ pet, onOpenRequests, onRefresh }) => {
   };
 
   const confirmDelete = async () => {
+    const {data:tokenData} = await authClient.token();
+    const token = tokenData?.token;
     setShowDeleteModal(false);
     setIsDeleting(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`, {
         method: "DELETE",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) throw new Error("Failed to delete record");
