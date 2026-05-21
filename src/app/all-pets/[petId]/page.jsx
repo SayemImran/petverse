@@ -1,12 +1,11 @@
 import Image from "next/image";
 import React from "react";
 import PetAdoptionForm from "@/components/pets/PetAdoptionForm";
-import { useSession } from "@/app/lib/auth-client";
 
 const PetDetailsPage = async ({ params }) => {
   const { petId } = await params;
   console.log("atrgeted pet id : ", petId);
-  const res = await fetch(`http://localhost:3001/pets/${petId}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`, {
     cache: "no-store",
   });
 
@@ -84,6 +83,18 @@ const PetDetailsPage = async ({ params }) => {
                   <p className="text-sm text-white/60">Location</p>
                   <p className="mt-2 text-lg font-semibold text-white">
                     {pet.location || "Unknown"}
+                  </p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
+                  <p className="text-sm text-white/60">Health Status</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {pet.healthStatus || "Unknown"}
+                  </p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-slate-950/30 p-5">
+                  <p className="text-sm text-white/60">Vaccination Status</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {pet.vaccinationStatus || "Unknown"}
                   </p>
                 </div>
               </div>

@@ -9,7 +9,7 @@ const RequestModal = ({ requestId, requester, reqEmail, pickupDate, message, onS
   const handleUpdateStatus = async (newStatus) => {
     setIsUpdating(true);
     try {
-      const response = await fetch(`http://localhost:3001/adoptionrequests/${requestId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/adoptionrequests/${requestId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

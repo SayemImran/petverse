@@ -53,7 +53,7 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
 
     try {
       setIsSubmitting(true);
-      const response = await fetch("http://localhost:3001/adoptionrequests", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/adoptionrequests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

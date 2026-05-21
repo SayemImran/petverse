@@ -2,10 +2,15 @@
 import { useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-const AddPetsPage = () => {
+const UpdatePetPage = () => {
   const { data: sessionData } = useSession();
   const userInfo = sessionData?.user;
+  const params = useParams(); 
+  const router = useRouter();
+  
+  const petId = params?.id;
 
   const [form, setForm] = useState({
     petName: "",
@@ -23,12 +28,40 @@ const AddPetsPage = () => {
   });
 
   const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (userInfo?.id) {
-      setForm((prev) => ({ ...prev, ownerID: userInfo.id }));
-    }
-  }, [userInfo?.id]);
+    const fetchPetDetails = async () => {
+      if (!petId) return;
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`);
+        if (!response.ok) throw new Error("Failed to read pet details");
+        
+        const data = await response.json();
+        setForm({
+          petName: data.petName || "",
+          species: data.species || "",
+          breed: data.breed || "",
+          age: data.age || "",
+          gender: data.gender || "",
+          imageUrl: data.imageUrl || "",
+          healthStatus: data.healthStatus || "",
+          vaccinationStatus: data.vaccinationStatus || "",
+          location: data.location || "",
+          adoptionFee: data.adoptionFee || "",
+          description: data.description || "",
+          ownerID: data.ownerID || "",
+        });
+      } catch (err) {
+        console.error("Fetch error:", err);
+        alert("Could not load current pet profiles for editing.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPetDetails();
+  }, [petId]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -38,53 +71,46 @@ const AddPetsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = { ...form, ownerID: userInfo?.id || "" };
-    console.log("Submitting pet data: ", data);
-
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets`, {
-        method: "POST",
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/pets/${petId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(form),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add pet");
+        throw new Error("Failed to apply update changes");
       }
 
-      const result = await response.json();
-      console.log("Pet added successfully: ", result);
-      setSuccessMessage("Pet added successfully!");
+      setSuccessMessage("Pet profile updated everywhere successfully!");
 
-      setForm({
-        petName: "",
-        species: "",
-        breed: "",
-        age: "",
-        gender: "",
-        imageUrl: "",
-        healthStatus: "",
-        vaccinationStatus: "",
-        location: "",
-        adoptionFee: "",
-        description: "",
-        ownerID: userInfo?.id || "",
-      });
+      setTimeout(() => {
+        router.push("/dashboard/my-listings");
+      }, 1500);
+
     } catch (err) {
-      console.error("Error adding pet: ", err);
+      console.error("Error updating pet: ", err);
+      alert("Failed to save changes. Please try again.");
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <p className="text-cyan-400 animate-pulse text-lg">Loading profile data layout...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 py-12 px-4">
       <div className="mx-auto w-full max-w-4xl">
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur-3xl">
           <div className="mb-8 space-y-2 text-center">
-            <h1 className="text-3xl font-semibold text-white">Add New Pet</h1>
-            <p className="text-slate-300">Fill in the pet details below</p>
+            <h1 className="text-3xl font-semibold text-white">Edit Pet Profile</h1>
+            <p className="text-slate-300">Modify the fields below to update your pet listing</p>
           </div>
 
           {successMessage && (
@@ -96,9 +122,7 @@ const AddPetsPage = () => {
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Pet Name
-                </span>
+                <span className="text-sm font-medium text-slate-200">Pet Name</span>
                 <input
                   type="text"
                   name="petName"
@@ -110,9 +134,7 @@ const AddPetsPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Species
-                </span>
+                <span className="text-sm font-medium text-slate-200">Species</span>
                 <select
                   name="species"
                   value={form.species}
@@ -133,9 +155,7 @@ const AddPetsPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Breed
-                </span>
+                <span className="text-sm font-medium text-slate-200">Breed</span>
                 <input
                   type="text"
                   name="breed"
@@ -160,9 +180,7 @@ const AddPetsPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Gender
-                </span>
+                <span className="text-sm font-medium text-slate-200">Gender</span>
                 <select
                   name="gender"
                   value={form.gender}
@@ -177,9 +195,7 @@ const AddPetsPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Image URL
-                </span>
+                <span className="text-sm font-medium text-slate-200">Image URL</span>
                 <input
                   type="url"
                   name="imageUrl"
@@ -193,9 +209,7 @@ const AddPetsPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Health Status
-                </span>
+                <span className="text-sm font-medium text-slate-200">Health Status</span>
                 <input
                   type="text"
                   name="healthStatus"
@@ -206,9 +220,7 @@ const AddPetsPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Vaccination Status
-                </span>
+                <span className="text-sm font-medium text-slate-200">Vaccination Status</span>
                 <select
                   name="vaccinationStatus"
                   value={form.vaccinationStatus}
@@ -225,9 +237,7 @@ const AddPetsPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Location
-                </span>
+                <span className="text-sm font-medium text-slate-200">Location</span>
                 <input
                   type="text"
                   name="location"
@@ -238,9 +248,7 @@ const AddPetsPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Adoption Fee
-                </span>
+                <span className="text-sm font-medium text-slate-200">Adoption Fee</span>
                 <input
                   type="number"
                   name="adoptionFee"
@@ -255,9 +263,7 @@ const AddPetsPage = () => {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Description
-                </span>
+                <span className="text-sm font-medium text-slate-200">Description</span>
                 <textarea
                   name="description"
                   value={form.description}
@@ -268,9 +274,7 @@ const AddPetsPage = () => {
               </label>
 
               <label className="space-y-2">
-                <span className="text-sm font-medium text-slate-200">
-                  Email
-                </span>
+                <span className="text-sm font-medium text-slate-200">Owner Email Reference</span>
                 <input
                   type="email"
                   name="email"
@@ -284,16 +288,18 @@ const AddPetsPage = () => {
             <div className="flex gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2 font-semibold text-white transition hover:from-cyan-400 hover:to-blue-500"
+                className="flex-1 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-3 font-semibold text-white transition hover:from-emerald-400 hover:to-teal-500 flex items-center justify-center gap-2"
               >
-                <FloppyDisk className="mr-2 inline-block" />
-                Save Pet
+                <FloppyDisk className="size-4" />
+                Save Changes
               </button>
+              
               <button
-                type="reset"
-                className="flex-1 rounded-lg border border-white/10 bg-slate-800/50 px-6 py-2 font-semibold text-slate-200 transition hover:bg-slate-800"
+                type="button"
+                onClick={() => router.push("/dashboard/my-listings")}
+                className="flex-1 rounded-lg border border-white/10 bg-slate-800/50 px-6 py-3 font-semibold text-slate-200 transition hover:bg-slate-800"
               >
-                Clear
+                Cancel
               </button>
             </div>
           </form>
@@ -303,4 +309,4 @@ const AddPetsPage = () => {
   );
 };
 
-export default AddPetsPage;
+export default UpdatePetPage;
