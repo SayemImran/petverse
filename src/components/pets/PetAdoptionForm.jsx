@@ -1,14 +1,13 @@
 "use client";
 import { useSession } from "@/app/lib/auth-client";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, petImage, petId }) => {
   const { data: sessionData } = useSession();
   const userInfo = sessionData?.user;
   const [pickupDate, setPickupDate] = useState("");
   const [message, setMessage] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (petAdopted) {
@@ -26,14 +25,12 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
     event.preventDefault();
 
     if (!userInfo?.id) {
-      setErrorMessage("Please sign in to submit an adoption request.");
-      setStatusMessage("");
+      toast.error("Please sign in to submit an adoption request.");
       return;
     }
 
     if (!pickupDate) {
-      setErrorMessage("Please select a pickup date.");
-      setStatusMessage("");
+      toast.error("Please select a pickup date.");
       return;
     }
 
@@ -63,14 +60,12 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
         throw new Error("Failed to submit adoption request.");
       }
 
-      setStatusMessage("Your adoption request has been sent successfully.");
-      setErrorMessage("");
+      toast.success("Your adoption request has been sent successfully.");
       setPickupDate("");
       setMessage("");
     } catch (err) {
       console.error("Adoption request error:", err);
-      setErrorMessage("Something went wrong. Please try again.");
-      setStatusMessage("");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,12 +149,6 @@ const PetAdoptionForm = ({ petName, ownerID, petAdopted, petLocation, price, pet
               />
             </label>
 
-            {errorMessage && (
-              <p className="text-sm text-rose-300">{errorMessage}</p>
-            )}
-            {statusMessage && (
-              <p className="text-sm text-emerald-300">{statusMessage}</p>
-            )}
 
             <button
               type="submit"

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "@/app/lib/auth-client";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const MyRequestPage = () => {
   const { data: sessionData } = useSession();
@@ -24,6 +25,7 @@ const MyRequestPage = () => {
     } catch (err) {
       console.error(err);
       setError("Failed to load adoption requests.");
+      toast.error("Failed to load adoption requests. Please refresh.");
     } finally {
       setLoading(false);
     }
@@ -42,11 +44,7 @@ const MyRequestPage = () => {
 
   // Handler rule to delete / cancel the active submission safely
   const handleCancelRequest = async (requestId, petName) => {
-    const confirmCancel = window.confirm(
-      `Are you sure you want to retract your adoption request for ${petName || "this pet"}?`,
-    );
-
-    if (!confirmCancel) return;
+   
 
     setCancelingId(requestId);
     try {
@@ -63,10 +61,10 @@ const MyRequestPage = () => {
       setMyRequests((prevRequests) =>
         prevRequests.filter((req) => req._id !== requestId),
       );
-      alert("Adoption request retracted successfully.");
+      toast.success("Adoption request retracted successfully.");
     } catch (err) {
       console.error(err);
-      alert("Error canceling request. Please try again later.");
+      toast.error("Error canceling request. Please try again later.");
     } finally {
       setCancelingId(null);
     }

@@ -1,9 +1,11 @@
 import HeroSection from "@/components/hero/HeroSection";
+import FeaturedPetsSection from "@/components/pets/FeaturedPetsSection";
 import Image from "next/image";
 
 export default function Home() {
-  return <>
-  <HeroSection
+  return (
+    <>
+      <HeroSection
         title="Find Your Perfect Pet Companion"
         subtitle="Discover adorable pets ready for adoption. Give them a loving home today."
         primaryBtnText="Browse Pets"
@@ -14,5 +16,14 @@ export default function Home() {
         showStats={true}
         enableAnimation={true}
       />
-  </>;
+      <FeaturedPetsSection
+        title="Our Top Picks"
+        subtitle="Carefully selected pets ready for adoption"
+        limit={9}
+        showViewAll={true}
+        viewAllLink="/all-pets"
+        enableAnimation={true}
+      />
+    </>
+  );
 }

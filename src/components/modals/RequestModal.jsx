@@ -2,6 +2,7 @@
 import { Sparkles, TrashBin } from "@gravity-ui/icons";
 import { Button, Modal } from "@heroui/react";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 const RequestModal = ({ requestId, requester, reqEmail, pickupDate, message, onStatusUpdate }) => {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -19,14 +20,14 @@ const RequestModal = ({ requestId, requester, reqEmail, pickupDate, message, onS
 
       if (!response.ok) throw new Error("Database rejected the modification layout.");
 
-      alert(`Application marked as ${newStatus}!`);
+      toast.success(`Application marked as ${newStatus}!`);
       
       if (onStatusUpdate) {
         onStatusUpdate();
       }
     } catch (err) {
       console.error(err);
-      alert(`Could not complete action. Error: ${err.message}`);
+      toast.error(`Could not complete action. Error: ${err.message}`);
     } finally {
       setIsUpdating(false);
     }

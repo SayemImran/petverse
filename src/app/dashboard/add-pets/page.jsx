@@ -2,6 +2,7 @@
 import { useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const AddPetsPage = () => {
   const { data: sessionData } = useSession();
@@ -21,8 +22,6 @@ const AddPetsPage = () => {
     description: "",
     ownerID: "",
   });
-
-  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (userInfo?.id) {
@@ -56,7 +55,7 @@ const AddPetsPage = () => {
 
       const result = await response.json();
       console.log("Pet added successfully: ", result);
-      setSuccessMessage("Pet added successfully!");
+      toast.success("Pet added successfully!");
 
       setForm({
         petName: "",
@@ -74,6 +73,7 @@ const AddPetsPage = () => {
       });
     } catch (err) {
       console.error("Error adding pet: ", err);
+      toast.error("Error adding pet. Please try again.");
     }
   };
 
@@ -87,11 +87,6 @@ const AddPetsPage = () => {
             <p className="text-slate-300">Fill in the pet details below</p>
           </div>
 
-          {successMessage && (
-            <div className="mb-6 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-emerald-200">
-              {successMessage}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid gap-4 lg:grid-cols-2">

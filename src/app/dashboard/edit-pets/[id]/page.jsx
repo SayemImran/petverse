@@ -2,6 +2,7 @@
 import { useSession } from "@/app/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 
 const UpdatePetPage = () => {
@@ -27,7 +28,6 @@ const UpdatePetPage = () => {
     ownerID: "",
   });
 
-  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const UpdatePetPage = () => {
         });
       } catch (err) {
         console.error("Fetch error:", err);
-        alert("Could not load current pet profiles for editing.");
+        toast.error("Could not load current pet profiles for editing.");
       } finally {
         setLoading(false);
       }
@@ -84,7 +84,7 @@ const UpdatePetPage = () => {
         throw new Error("Failed to apply update changes");
       }
 
-      setSuccessMessage("Pet profile updated everywhere successfully!");
+      toast.success("Pet profile updated successfully!");
 
       setTimeout(() => {
         router.push("/dashboard/my-listings");
@@ -92,7 +92,7 @@ const UpdatePetPage = () => {
 
     } catch (err) {
       console.error("Error updating pet: ", err);
-      alert("Failed to save changes. Please try again.");
+      toast.error("Failed to save changes. Please try again.");
     }
   };
 
@@ -113,11 +113,6 @@ const UpdatePetPage = () => {
             <p className="text-slate-300">Modify the fields below to update your pet listing</p>
           </div>
 
-          {successMessage && (
-            <div className="mb-6 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-emerald-200">
-              {successMessage}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid gap-4 lg:grid-cols-2">

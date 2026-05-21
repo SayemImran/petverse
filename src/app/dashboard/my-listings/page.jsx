@@ -71,8 +71,9 @@ const MyListings = () => {
       // Close modal and refresh all data
       setIsModalOpen(false);
       await fetchDashboardData();
+      toast.success("Request status updated successfully.");
     } catch (err) {
-      alert("Error handling request status configuration change.");
+      toast.error("Error handling request status configuration change.");
     }
   };
 
